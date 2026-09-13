@@ -25,7 +25,16 @@ export default function LoginPage() {
       await login({ email, password });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid email or password');
+      const data = err.response?.data;
+      if (typeof data?.detail === 'string') {
+        setError(data.detail);
+      } else if (Array.isArray(data?.detail) && data.detail[0]?.msg) {
+        setError(data.detail[0].msg);
+      } else if (typeof data?.error === 'string') {
+        setError(data.error);
+      } else {
+        setError('Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }

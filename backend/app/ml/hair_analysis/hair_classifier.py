@@ -1,7 +1,16 @@
 import os
-import torch
-import torch.nn as nn
-from torchvision import transforms, models
+try:
+    import torch
+    import torch.nn as nn
+    from torchvision import transforms, models
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    nn = None
+    transforms = None
+    models = None
+    HAS_TORCH = False
+
 import numpy as np
 from PIL import Image
 import cv2
@@ -31,14 +40,18 @@ class HairTypeClassifier:
             'short-men': 'Short'
         }
         
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = None
+        if HAS_TORCH:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            self.transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+        else:
+            self.device = "cpu"
+            self.transform = None
         
-        self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        self.model = None
         
         if model_path and os.path.exists(model_path):
             try:

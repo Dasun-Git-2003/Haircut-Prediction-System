@@ -5,7 +5,9 @@ import BeforeAfterSlider from './BeforeAfterSlider';
 import { motion } from 'framer-motion';
 
 interface TryOnViewerProps {
-  tryOnData: any; // Using any for mock, usually TryOnResult
+  tryOnData: any;
+  beforeImage?: string;
+  afterImage?: string;
   isGenerating?: boolean;
   onPrevious?: () => void;
   onNext?: () => void;
@@ -15,27 +17,32 @@ interface TryOnViewerProps {
 
 export default function TryOnViewer({
   tryOnData,
+  beforeImage,
+  afterImage,
   isGenerating,
   onPrevious,
   onNext,
   onRegenerate,
   onSave
 }: TryOnViewerProps) {
+  const originalPhoto = beforeImage || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80";
+  const generatedPhoto = afterImage || tryOnData?.img || originalPhoto;
+
   return (
     <div className="grid lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-2 relative aspect-[3/4] md:aspect-[4/3] rounded-xl overflow-hidden glass border-white/20">
         {isGenerating ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-20">
             <Sparkles className="w-12 h-12 text-primary animate-bounce mb-4" />
-            <h3 className="text-xl font-bold mb-2">Generating AI Preview...</h3>
+            <h3 className="text-xl font-bold mb-2">Generating AI Preview with Gemini...</h3>
             <p className="text-sm text-muted-foreground max-w-xs text-center">
-              Applying {tryOnData?.name || 'this style'} to your photo.
+              Applying {tryOnData?.name || 'this hairstyle'} to your photograph.
             </p>
           </div>
         ) : (
           <BeforeAfterSlider 
-            beforeImage="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80" 
-            afterImage={tryOnData?.img || ''} 
+            beforeImage={originalPhoto} 
+            afterImage={generatedPhoto} 
           />
         )}
       </div>

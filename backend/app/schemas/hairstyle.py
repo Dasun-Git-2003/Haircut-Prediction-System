@@ -1,18 +1,17 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
-from app.schemas.common import FaceShape, HairType, HairLength, HairDensity, MaintenanceLevel, StyleTag, LifestyleTag
 
 class HairstyleBase(BaseModel):
     name: str
     description: str
     category: str
-    face_shapes: List[FaceShape]
-    hair_types: List[HairType]
-    hair_lengths: List[HairLength]
-    hair_density: List[HairDensity]
-    maintenance_level: MaintenanceLevel
-    style_tags: List[StyleTag]
-    lifestyle_tags: List[LifestyleTag]
+    face_shapes: List[str]
+    hair_types: List[str]
+    hair_lengths: List[str]
+    hair_density: List[str]
+    maintenance_level: str
+    style_tags: List[str]
+    lifestyle_tags: List[str]
     gender_target: str
     difficulty: int
     image_url: str
@@ -25,7 +24,17 @@ class HairstyleUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
-    # Add optional fields for partial update
+    face_shapes: Optional[List[str]] = None
+    hair_types: Optional[List[str]] = None
+    hair_lengths: Optional[List[str]] = None
+    hair_density: Optional[List[str]] = None
+    maintenance_level: Optional[str] = None
+    style_tags: Optional[List[str]] = None
+    lifestyle_tags: Optional[List[str]] = None
+    gender_target: Optional[str] = None
+    difficulty: Optional[int] = None
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
 
 class HairstyleResponse(HairstyleBase):
     id: str

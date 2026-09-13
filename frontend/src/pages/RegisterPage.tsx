@@ -31,7 +31,16 @@ export default function RegisterPage() {
       await register({ username, email, password });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed');
+      const data = err.response?.data;
+      if (typeof data?.detail === 'string') {
+        setError(data.detail);
+      } else if (Array.isArray(data?.detail) && data.detail[0]?.msg) {
+        setError(data.detail[0].msg);
+      } else if (typeof data?.error === 'string') {
+        setError(data.error);
+      } else {
+        setError('Registration failed. Please verify your details.');
+      }
     } finally {
       setLoading(false);
     }

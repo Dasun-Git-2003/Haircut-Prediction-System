@@ -13,12 +13,22 @@ class AuthService:
         if existing:
             raise AppError(400, "Email already registered")
         
+        import uuid
         hashed = get_password_hash(data.password)
-        new_user = User(email=data.email, username=data.username, hashed_password=hashed)
+        new_user = User(
+            id=str(uuid.uuid4()),
+            email=data.email,
+            username=data.username,
+            hashed_password=hashed
+        )
         return await self.user_repo.create(new_user)
 
     async def authenticate(self, data: UserLogin) -> str:
-        user = await self.user_repo.get_by_email(data.username) # assuming email login
+        if hasattr(self.user_repo, "get_by_username_or_email"):
+            user = await self.user_repo.get_by_username_or_email(data.username)
+        else:
+            user = await self.user_repo.get_by_email(data.username)
+            
         if not user or not verify_password(data.password, user.hashed_password):
             raise UnauthorizedError("Incorrect credentials")
         

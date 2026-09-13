@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Settings2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -14,6 +14,7 @@ const preferencesConfig = [
 
 export default function PreferencesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selections, setSelections] = useState<Record<string, string[]>>({});
 
   const toggleSelection = (category: string, option: string) => {
@@ -28,6 +29,15 @@ export default function PreferencesPage() {
         return { ...prev, [category]: withoutNoPref.filter(o => o !== option) };
       } else {
         return { ...prev, [category]: [...withoutNoPref, option] };
+      }
+    });
+  };
+
+  const handleProceed = (prefs: any) => {
+    navigate('/results', {
+      state: {
+        ...location.state,
+        preferences: prefs
       }
     });
   };
@@ -56,8 +66,8 @@ export default function PreferencesPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-end border-t pt-8">
-        <Button variant="ghost" size="lg" onClick={() => navigate('/results')}>Skip</Button>
-        <Button size="lg" onClick={() => navigate('/results', { state: { preferences: selections } })}>
+        <Button variant="ghost" size="lg" onClick={() => handleProceed({})}>Skip</Button>
+        <Button size="lg" onClick={() => handleProceed(selections)}>
           Get Recommendations
         </Button>
       </div>

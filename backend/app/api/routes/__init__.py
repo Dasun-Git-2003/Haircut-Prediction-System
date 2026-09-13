@@ -15,4 +15,5 @@ api_router.include_router(analysis_router, prefix="/analysis", tags=["analysis"]
 api_router.include_router(recommendations_router, prefix="/recommendations", tags=["recommendations"])
 api_router.include_router(hairstyles_router, prefix="/hairstyles", tags=["hairstyles"])
 api_router.include_router(tryon_router, prefix="/tryon", tags=["tryon"])
+api_router.include_router(tryon_router, prefix="/try-on", tags=["try-on"])
 api_router.include_router(favorites_router, prefix="/favorites", tags=["favorites"])

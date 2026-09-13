@@ -7,9 +7,12 @@ class RecommendationRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
         
+    async def get_by_id(self, id: str) -> Optional[Recommendation]:
+        return await self.db.get(Recommendation, id)
+
     async def get_by_session_id(self, session_id: str) -> List[Recommendation]:
         result = await self.db.execute(select(Recommendation).where(Recommendation.session_id == session_id))
-        return result.scalars().all()
+        return list(result.scalars().all())
         
     async def create(self, recommendation: Recommendation) -> Recommendation:
         self.db.add(recommendation)

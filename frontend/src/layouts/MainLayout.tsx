@@ -5,7 +5,11 @@ import { useAuth } from '../hooks/useAuth';
 import { Menu, X, Wand2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
-export default function MainLayout() {
+interface MainLayoutProps {
+  children?: React.ReactNode;
+}
+
+export default function MainLayout({ children }: MainLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -81,7 +85,7 @@ export default function MainLayout() {
       </AnimatePresence>
 
       <main className="flex-1">
-        <Outlet />
+        {children || <Outlet />}
       </main>
 
       <footer className="border-t py-8 mt-auto">

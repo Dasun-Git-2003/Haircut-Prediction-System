@@ -655,17 +655,53 @@ HAIRSTYLES = [
 
 
 async def seed_database(db: AsyncSession) -> None:
-    """Seed the hairstyle database if empty."""
-    result = await db.execute(select(Hairstyle).limit(1))
-    existing = result.scalars().first()
-    if existing:
-        logger.info("Hairstyles already seeded, skipping.")
+    """Seed the relational hairstyle database if empty."""
+    try:
+        result = await db.execute(select(Hairstyle).limit(1))
+        existing = result.scalars().first()
+        if existing:
+            logger.info("Hairstyles already seeded in relational DB, skipping.")
+            return
+
+        logger.info(f"Seeding {len(HAIRSTYLES)} hairstyles...")
+        for data in HAIRSTYLES:
+            hairstyle = Hairstyle(**data)
+            db.add(hairstyle)
+
+        await db.commit()
+        logger.info(f"Successfully seeded {len(HAIRSTYLES)} hairstyles in relational DB.")
+    except Exception as e:
+        logger.error(f"Error seeding relational hairstyles: {e}")
+
+async def seed_mongo_database() -> None:
+    """Seed hairstyles collection in MongoDB Atlas if empty."""
+    from app.database.mongodb import get_mongo_db
+    import uuid
+    from datetime import datetime, timezone
+    
+    mongo_db = get_mongo_db()
+    if mongo_db is None:
+        logger.warning("MongoDB not connected. Skipping MongoDB seeding.")
         return
+        
+    try:
+        count = await mongo_db.hairstyles.count_documents({})
+        if count > 0:
+            logger.info(f"MongoDB already has {count} hairstyles. Skipping seed.")
+            return
 
-    logger.info(f"Seeding {len(HAIRSTYLES)} hairstyles...")
-    for data in HAIRSTYLES:
-        hairstyle = Hairstyle(**data)
-        db.add(hairstyle)
-
-    await db.commit()
-    logger.info(f"Successfully seeded {len(HAIRSTYLES)} hairstyles.")
+        logger.info(f"Seeding {len(HAIRSTYLES)} hairstyles into MongoDB Atlas...")
+        docs = []
+        now = datetime.now(timezone.utc)
+        for h in HAIRSTYLES:
+            doc = dict(h)
+            doc["_id"] = str(uuid.uuid4())
+            doc["id"] = doc["_id"]
+            doc["created_at"] = now
+            doc["updated_at"] = now
+            docs.append(doc)
+            
+        await mongo_db.hairstyles.insert_many(docs)
+        logger.info(f"Successfully seeded {len(docs)} hairstyles into MongoDB Atlas!")
+    except Exception as e:
+        logger.error(f"Failed to seed hairstyles into MongoDB: {e}")

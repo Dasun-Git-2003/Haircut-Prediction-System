@@ -18,7 +18,37 @@ export default function AnalysisPage() {
       return;
     }
 
-    const totalDuration = 6000;
+    let isMounted = true;
+    let uploadSessionId = '';
+    let analysisData: any = null;
+
+    // Trigger API call in parallel with progress animation
+    const performAnalysis = async () => {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadRes = await fetch('/api/analysis/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (uploadRes.ok) {
+          const uploadJson = await uploadRes.json();
+          uploadSessionId = uploadJson.session_id;
+          const analyzeRes = await fetch(`/api/analysis/analyze/${uploadSessionId}`, {
+            method: 'POST',
+          });
+          if (analyzeRes.ok) {
+            analysisData = await analyzeRes.json();
+          }
+        }
+      } catch (err) {
+        console.warn('Live API analysis failed, using visual preview pipeline:', err);
+      }
+    };
+
+    performAnalysis();
+
+    const totalDuration = 4500;
     const interval = 100;
     const stepsCount = totalDuration / interval;
     let currentCount = 0;
@@ -26,20 +56,33 @@ export default function AnalysisPage() {
     const timer = setInterval(() => {
       currentCount++;
       const percent = (currentCount / stepsCount) * 100;
-      setProgress(percent);
-      
-      const stepIndex = Math.floor((percent / 100) * 5); // 5 steps
-      setCurrentStep(Math.min(stepIndex, 4));
+      if (isMounted) {
+        setProgress(percent);
+        const stepIndex = Math.floor((percent / 100) * 5);
+        setCurrentStep(Math.min(stepIndex, 4));
+      }
 
       if (percent >= 100) {
         clearInterval(timer);
         setTimeout(() => {
-          navigate('/preferences');
-        }, 500);
+          if (isMounted) {
+            navigate('/preferences', { 
+              state: { 
+                file,
+                sessionId: uploadSessionId || 'session_default', 
+                imageUrl: URL.createObjectURL(file),
+                analysisResult: analysisData
+              } 
+            });
+          }
+        }, 300);
       }
     }, interval);
 
-    return () => clearInterval(timer);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
   }, [file, navigate]);
 
   return (

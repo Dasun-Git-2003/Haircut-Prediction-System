@@ -1,9 +1,16 @@
 import os
-import torch
+try:
+    import torch
+    from torchvision import transforms
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    transforms = None
+    HAS_TORCH = False
+
 import numpy as np
 import cv2
 import mediapipe as mp
-from torchvision import transforms
 from PIL import Image
 from dataclasses import dataclass
 from typing import Tuple, Optional
@@ -18,9 +25,10 @@ class SegmentationResult:
 
 class HairSegmenter:
     def __init__(self, model_path: str = None):
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if HAS_TORCH else "cpu"
         self.model = None
-        self.mp_selfie = mp.solutions.selfie_segmentation.SelfieSegmentation(model_selection=0)
+        # Handle mediapipe solutions
+        self.mp_selfie = getattr(mp.solutions, "selfie_segmentation", None)
         
         if model_path and os.path.exists(model_path):
             try:

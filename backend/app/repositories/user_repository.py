@@ -13,6 +13,10 @@ class UserRepository:
     async def get_by_email(self, email: str) -> Optional[User]:
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalars().first()
+
+    async def get_by_username_or_email(self, identifier: str) -> Optional[User]:
+        result = await self.db.execute(select(User).where((User.email == identifier) | (User.username == identifier)))
+        return result.scalars().first()
         
     async def create(self, user: User) -> User:
         self.db.add(user)
