@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: styleai-db
+    environment:
+      POSTGRES_USER: styleai
+      POSTGRES_PASSWORD: styleai_dev_password
+      POSTGRES_DB: styleai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U styleai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: styleai-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://styleai:styleai_dev_password@postgres:5432/styleai
+      - JWT_SECRET=${JWT_SECRET:-styleai-dev-jwt-secret-change-in-production}
+      - GENAI_PROVIDER=${GENAI_PROVIDER:-gemini}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - STABLE_DIFFUSION_URL=${STABLE_DIFFUSION_URL:-}
+      - ENVIRONMENT=production
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_generated:/app/generated
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: styleai-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  backend_generated:

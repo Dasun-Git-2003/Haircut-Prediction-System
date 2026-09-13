@@ -1,0 +1,6 @@
+from .user_repository import UserRepository
+from .hairstyle_repository import HairstyleRepository
+from .analysis_repository import AnalysisRepository
+from .recommendation_repository import RecommendationRepository
+from .tryon_repository import TryOnRepository
+from .favorite_repository import FavoriteRepository
